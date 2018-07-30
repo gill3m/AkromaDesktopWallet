@@ -31,9 +31,9 @@ currently only tested on Ubuntu 16.04
   
   python3 wallet.py
   
-  # NOTE Wallet Txn are not persistant right now, if you restart you will start from block 0
+  ### NOTE Wallet Txn are not persistant right now, if you restart you will start from block 0
   
-  ##TODO
+  ### TODO
   
   Multiple wallets
   

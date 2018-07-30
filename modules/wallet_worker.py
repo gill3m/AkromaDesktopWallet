@@ -8,7 +8,7 @@ from PyQt4 import QtCore, QtGui
 import sys, time
 
 #TODO this should be loaded from DB or 0 for new wallet
-startBlock=1229700
+startBlock=0
 
 
 class Worker(QtCore.QThread):

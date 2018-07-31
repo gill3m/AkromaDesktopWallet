@@ -20,7 +20,9 @@ class SettingsWindow(QtGui.QWidget):
 		self.ui = settingsinfo_ui.Ui_SettingsInfo()
 		self.ui.setupUi(self)
 		self.connect(self.ui.btn_OPenWallet, SIGNAL("clicked()"), self.handleBtnOpenWallet)
-#		self.connect(self.ui.btn_CreateWallet, SIGNAL("clicked()"), self.handleBtnCreateWallet)
+		self.connect(self.ui.btn_CreateWallet, SIGNAL("clicked()"), self.handleBtnCreateWallet)
+		self.connect(self.ui.btn_PrivateKey, SIGNAL("clicked()"), self.handleBtnPrivateKey)
+
 
 	def sendWallet(self):
 #		print("sending addr:" + self.walletAddr)
@@ -31,6 +33,59 @@ class SettingsWindow(QtGui.QWidget):
 
 	def sendPass(self):
 		self.passSignal.emit(self.walletPass)
+
+	def handleBtnPrivateKey(self):
+		home = str(Path.home())
+		fname = QFileDialog.getOpenFileName(self, 'Open file',
+				home,"*.*")
+		if len(fname) != 0 :
+			#Enter password to verify wallet
+			input, ok = QtGui.QInputDialog.getText(None, 'Password',
+                                                   'Enter password:', QtGui.QLineEdit.Password)
+
+			if ok == True:
+				privKey = getPrivKey(fname, input)
+				if privKey == "ERROR":
+					msg = QtGui.QMessageBox()
+					msg.setIcon(QtGui.QMessageBox.Information)
+					msg.setText("Invalid Password ")
+					msg.setInformativeText("Please enter a valid password for this wallet.")
+					msg.setStandardButtons(QtGui.QMessageBox.Ok)
+					msg.exec_()
+				else :
+					keyHex = privKey.hex()
+					msg = QtGui.QMessageBox()
+					msg.setIcon(QtGui.QMessageBox.Information)
+					msg.setText(keyHex)
+					msg.setInformativeText("This your private key for this wallet. Keep this safe and do not disclose to anyone. You can recover you wallet with this key")
+					msg.setStandardButtons(QtGui.QMessageBox.Ok)
+					msg.exec_()
+
+
+	def handleBtnCreateWallet(self):
+		#Enter password to verify wallet
+		input, ok = QtGui.QInputDialog.getText(None, 'Password',
+                                               'Enter password:', QtGui.QLineEdit.Password)
+		#if ok == True
+		if ok == True:
+			if len(input) == 0:
+				msg = QtGui.QMessageBox()
+				msg.setIcon(QtGui.QMessageBox.Information)
+				msg.setText("Please enter a password")
+				msg.setInformativeText("Password cannot be empty!")
+				msg.setStandardButtons(QtGui.QMessageBox.Ok)
+				msg.exec_()
+
+				return
+			print("About to make file")
+			acct = w3.personal.newAccount('password')
+			msg = QtGui.QMessageBox()
+			msg.setIcon(QtGui.QMessageBox.Information)
+			msg.setText(acct)
+			msg.setInformativeText("This is your wallet address. Your wallet file has been created in your keystore directory. Now select Private Key button to discover your private key")
+			msg.setStandardButtons(QtGui.QMessageBox.Ok)
+			msg.exec_()
+
 
 
 	def handleBtnOpenWallet(self):
@@ -43,9 +98,8 @@ class SettingsWindow(QtGui.QWidget):
 			input, ok = QtGui.QInputDialog.getText(None, 'Password',
                                                    'Enter password:', QtGui.QLineEdit.Password)
 
-			print(fname)
+			#print(fname)
 
-			print(input, ok)
 			self.walletPass=input
 			ret = verifyWallet(fname, input)
 			print (ret)

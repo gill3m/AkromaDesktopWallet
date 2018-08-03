@@ -8,14 +8,15 @@ from PyQt4 import QtCore, QtGui
 import sys, time
 
 #TODO this should be loaded from DB or 0 for new wallet
-startBlock=0
+#startBlock=1229700
+#startBlock=0
 
 
 class Worker(QtCore.QThread):
     transaction = QtCore.pyqtSignal(str)
     currentBlock=QtCore.pyqtSignal(int)
 
-    def __init__(self, str, parent=None):
+    def __init__(self, str, startBlock, parent=None):
         super(Worker, self).__init__()
     #
     #    super(Worker, self).__init__(parent)

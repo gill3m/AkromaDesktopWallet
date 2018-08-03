@@ -3,6 +3,8 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import QDialog, QFileDialog
 import uic.sendWindow_ui as sendWindow_ui
 from modules.misc_web3 import *
+from modules.misc_shared import *
+import sys
 
 class SendWindow(QtGui.QWidget):
 	def __init__(self, parent=None):
@@ -23,7 +25,25 @@ class SendWindow(QtGui.QWidget):
 		ret = self.prepareAndSend()
 
 	def prepareAndSend(self):
-		toAddr = w3.toChecksumAddress(self.ui.lineEdit_to.text())
+		try:
+			toAddr = w3.toChecksumAddress(self.ui.lineEdit_to.text())
+		except TypeError as err:
+			print("Exception occurred" )
+			print (err)
+			displayMessage(MessageType.Warn, str(err), "Error on validating Address, exception occurred")
+			return
+
+		except ValueError as v:
+			print("ValueError Exception occurred" )
+			print (v)
+			displayMessage(MessageType.Warn, str(v), "Error on validating Address, exception occurred")
+			return
+
+		except :
+			print ("Unknown exception occurred on signTransaction")
+			print (sys.exc_info()[0])
+			return
+
 		fromAddr = self.myWallet
 		gasGiven = int(self.ui.lineEdit_gas.text())
 		value= getAmtInWei(float(self.ui.lineEdit_amt.text()))
@@ -48,10 +68,14 @@ class SendWindow(QtGui.QWidget):
 		except TypeError as err:
 			print("Exception occurred" )
 			print (err)
+			displayMessage(MessageType.Warn, str(err), "Error on validating Address, exception occurred")
+
 
 		except ValueError as v:
 			print("ValueError Exception occurred" )
 			print (v)
+			displayMessage(MessageType.Warn, str(v), "Error on signTxn, exception occurred")
+
 		except :
 			print ("Unknown exception occurred on signTransaction")
 			print (sys.exc_info()[0])
@@ -62,22 +86,23 @@ class SendWindow(QtGui.QWidget):
 		except TypeError as err:
 			print("Exception occurred" )
 			print (err)
+			return
 
 		except ValueError as v:
 			print("ValueError Exception occurred" )
 			print (v)
+			displayMessage(MessageType.Warn, str(v), "Error on send, exception occurred")
+			return
+
 		except :
 			print ("Unknown exception occurred on signTransaction")
 			print (sys.exc_info()[0])
+			return
+
 
 
 		txHashHex=transaction_id.hex()
-		msg = QtGui.QMessageBox()
-		msg.setIcon(QtGui.QMessageBox.Information)
-		msg.setText(txHashHex)
-		msg.setInformativeText("This is your Transaction Id")
-		msg.setStandardButtons(QtGui.QMessageBox.Ok)
-		msg.exec_()
+		displayMessage(MessageType.Info, txHashHex, "This is your Transaction Id")
 
 
 	@pyqtSlot(str)
@@ -103,41 +128,21 @@ class SendWindow(QtGui.QWidget):
 	def validateForm(self):
 		#  wallet initial
 		if self.WalletInit == False :
-			msg = QtGui.QMessageBox()
-			msg.setIcon(QtGui.QMessageBox.Information)
-			msg.setText("No Wallet selected ")
-			msg.setInformativeText("Please select a wallet from Settings window")
-			msg.setStandardButtons(QtGui.QMessageBox.Ok)
-			msg.exec_()
+			displayMessage(MessageType.Info, "No Wallet selected ", "Please select a wallet from Settings window")
 			return False
 
 
 		#TODO need more rigorous validation
 		if self.ui.lineEdit_to.text() == "":
-			msg = QtGui.QMessageBox()
-			msg.setIcon(QtGui.QMessageBox.Information)
-			msg.setText("Invalid To Addr ")
-			msg.setInformativeText("Please enter a valid address")
-			msg.setStandardButtons(QtGui.QMessageBox.Ok)
-			msg.exec_()
+			displayMessage(MessageType.Info, "Invalid To Addr ", "Please enter a valid address")
 			return False
 
 		if self.ui.lineEdit_amt.text() == "":
-			msg = QtGui.QMessageBox()
-			msg.setIcon(QtGui.QMessageBox.Information)
-			msg.setText("Invalid Amt ")
-			msg.setInformativeText("Please enter a valid Amt")
-			msg.setStandardButtons(QtGui.QMessageBox.Ok)
-			msg.exec_()
+			displayMessage(MessageType.Info, "Invalid Amt ", "Please enter a valid Amt")
 			return False
 
 		if self.ui.lineEdit_gas.text() == "":
-			msg = QtGui.QMessageBox()
-			msg.setIcon(QtGui.QMessageBox.Information)
-			msg.setText("Invalid Gas")
-			msg.setInformativeText("Please enter atleast 21000")
-			msg.setStandardButtons(QtGui.QMessageBox.Ok)
-			msg.exec_()
+			displayMessage(MessageType.Info, "Invalid Gas", "Please enter atleast 21000")
 			return False
 
 		return True

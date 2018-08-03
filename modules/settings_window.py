@@ -1,9 +1,12 @@
+## Copyright (c) 2018 - Akroma Project (www.akroma.io)
+
 from PyQt4 import QtGui
 from PyQt4.QtCore import *
 from PyQt4.QtGui import QDialog, QFileDialog
 from modules.misc_web3 import *
+from modules.misc_shared import *
 from pathlib import Path
-
+import json
 import uic.settingsinfo_ui as settingsinfo_ui
 
 
@@ -46,20 +49,11 @@ class SettingsWindow(QtGui.QWidget):
 			if ok == True:
 				privKey = getPrivKey(fname, input)
 				if privKey == "ERROR":
-					msg = QtGui.QMessageBox()
-					msg.setIcon(QtGui.QMessageBox.Information)
-					msg.setText("Invalid Password ")
-					msg.setInformativeText("Please enter a valid password for this wallet.")
-					msg.setStandardButtons(QtGui.QMessageBox.Ok)
-					msg.exec_()
+					displayMessage(MessageType.Info, "Invalid Password ", "Please enter a valid password for this wallet.")
+
 				else :
 					keyHex = privKey.hex()
-					msg = QtGui.QMessageBox()
-					msg.setIcon(QtGui.QMessageBox.Information)
-					msg.setText(keyHex)
-					msg.setInformativeText("This your private key for this wallet. Keep this safe and do not disclose to anyone. You can recover you wallet with this key")
-					msg.setStandardButtons(QtGui.QMessageBox.Ok)
-					msg.exec_()
+					displayMessage(MessageType.Info, keyHex, "This your private key for this wallet. Keep this safe and do not disclose to anyone. You can recover you wallet with this key")
 
 
 	def handleBtnCreateWallet(self):
@@ -69,23 +63,28 @@ class SettingsWindow(QtGui.QWidget):
 		#if ok == True
 		if ok == True:
 			if len(input) == 0:
-				msg = QtGui.QMessageBox()
-				msg.setIcon(QtGui.QMessageBox.Information)
-				msg.setText("Please enter a password")
-				msg.setInformativeText("Password cannot be empty!")
-				msg.setStandardButtons(QtGui.QMessageBox.Ok)
-				msg.exec_()
-
+				displayMessage(MessageType.Info, "Please enter a password", "Password cannot be empty!")
 				return
+
 			print("About to make file")
 			acct = w3.personal.newAccount('password')
-			msg = QtGui.QMessageBox()
-			msg.setIcon(QtGui.QMessageBox.Information)
-			msg.setText(acct)
-			msg.setInformativeText("This is your wallet address. Your wallet file has been created in your keystore directory. Now select Private Key button to discover your private key")
-			msg.setStandardButtons(QtGui.QMessageBox.Ok)
-			msg.exec_()
+			displayMessage(MessageType.Info, acct, "This is your wallet address. Your wallet file has been created in your keystore directory. Now select Private Key button to discover your private key")
 
+			#write this file to config
+			#create wallet file in Akroma
+			acctUC=acct.upper()
+			dataDir=getDataDir()
+			walletDir=dataDir + "/keystore/"
+			walletStore=walletDir + acctUC + ".dat"
+			print(walletStore)
+
+			#make dict for new wallet,set txnHeight to curr block no
+			#we will store txns as they arrive
+			data={}
+			data['blockHeight'] = getCurrBlockNo()
+			data['txns']=[]
+			with open(walletStore, 'w') as outfile:
+				json.dump(data, outfile, indent=4)
 
 
 	def handleBtnOpenWallet(self):

@@ -73,3 +73,12 @@ def getAddrfromFile(fname):
 
 
 	return addr
+#get the default datadir geth is using
+def getDataDir():
+	dir= w3.admin.datadir
+	return dir
+
+
+def getCurrBlockNo():
+	block=w3.eth.blockNumber
+	return block

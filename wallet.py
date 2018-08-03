@@ -1,5 +1,5 @@
 import sys
-
+import os
 from PyQt4 import QtGui
 from PyQt4.QtCore import *
 from PyQt4.QtGui import QDialog, QFileDialog
@@ -10,6 +10,7 @@ from modules.table_model import *
 from modules.wallet_worker import *
 from modules.send_window import *
 from modules.settings_window import *
+from modules.fileops import *
 
 
 class ControlMainWindow(QtGui.QMainWindow):
@@ -40,6 +41,9 @@ class ControlMainWindow(QtGui.QMainWindow):
 		self.connect(self.ui.btn_Settings, SIGNAL("clicked()"), self.handleBtnWSettings)
 		self.walletUpdated=False
 
+		#this will store txns as they arrive for saving to to file
+		#together with the current blockheight
+		self.myWalletData={}
 		#setup tableData
 		#TODO - initial load from wallet file
 		self.tableData=[]
@@ -47,9 +51,21 @@ class ControlMainWindow(QtGui.QMainWindow):
 		self.setTableDefaults()
 		#lets wait for user to select wallet
 
+	def closeEvent(self, e):
+	# Write window size and position to config file
+		if self.walletUpdated == True:
+			print("Window about to close..writing wallet data")
+			self.dumpCurrWalletJson()
+			print("Done")
+		#for some reason terminal window is left in unknown state, make sane again
+		os.system('stty sane')
+		e.accept()
 
-	def startLookingforTxn(self, searchWallet):
-		self.thread=Worker(searchWallet)
+
+
+
+	def startLookingforTxn(self):
+		self.thread=Worker(self.myWallet, self.blockHeight)
 		self.thread.transaction.connect(self.TxnArrive)
 		self.thread.currentBlock.connect(self.blockArrive)
 		self.thread.finished.connect(self.threadFin)
@@ -72,28 +88,97 @@ class ControlMainWindow(QtGui.QMainWindow):
 #		self.tableData.append(['y',1,1,1,1])
 
 		x=txnStr.split(',')
+
+		#Append this txn to walletdict
+		self.myWalletData['txns'].append({
+		'direction': x[0],
+		'addr': x[1],
+		'amt' : x[2],
+		'date' : x[3],
+		'txn' : x[4]
+		})
 		self.tableData.insert(0, x)
 
 		self.ui.tableView_txn.model().layoutChanged.emit()
-		#Update the
+		#Update the balance
 		self.set_balance(self.myWallet)
+		#TODO add txn to datastore
+
+	def readWalletStore(self):
+		#check file exists, otherwise make new wallet
+		pathtoFile=buildFullPath(self.myWalletUC);
+		ret = checkFileExists(pathtoFile)
+		if ret == False:
+			data={}
+			data['blockHeight'] = 0
+			data['txns']=[]
+			with open(pathtoFile, 'w') as outfile:
+				json.dump(data, outfile, indent=4)
+			print("Info: wallet file does not exist - will create new one")
+
+		#read blockheight from file
+		blockHeight, ok = getTxnHeight(self.myWalletUC)
+		if ok==True:
+			self.blockHeight= blockHeight
+			wallet=buildFullPath(self.myWalletUC)
+			#get the txns
+			try:
+				with open(wallet, 'r') as fp:
+					obj = json.load(fp)
+					self.myWalletData=obj
+
+			except ValueError:
+				print ("readWalletStore::error loading JSON")
+
+			print ("Wallet is at height:" + str(blockHeight))
+			#make list to append into datastore
+
+
+			for tx in obj['txns']:
+				'''
+				print('Direction: ' + tx['direction'])
+				print('addr: ' + tx['addr'])
+				print('amt: ' + tx['amt'])
+				print('date: ' + tx['date'])
+				print('txn: ' + tx['txn'])
+				'''
+				data=[tx['direction'],tx['addr'],tx['amt'],tx['date'],tx['txn']]
+
+				# put these txns on main display
+				self.tableData.insert(0, data)
+
+				self.ui.tableView_txn.model().layoutChanged.emit()
 
 
 	@pyqtSlot(str)
 	def sayWallet(self, str):
-		''' Give wallet name  '''
+		''' print Wallet name  '''
 		print("New incoming wallet:" + str)
+
+		#switching wallet dump the old one to disk
+		if self.walletUpdated == True:
+			self.dumpCurrWalletJson()
+			# TODO reset tableData if new wallet\
+			self.myWalletData={}
+			#reset display data data aswell
+			del self.tableData[:]
+			self.ui.tableView_txn.model().layoutChanged.emit()
+
+
+
+		self.myWalletOrig=str
 		# run thru checksum to fix lowercase addr otheriwse GetBalance error
 		wallet = w3.toChecksumAddress(str)
 		self.myWallet=wallet
-		self.set_wallet(wallet)				#send Fname to MainWindow
-		self.set_balance(wallet)
+		self.myWalletUC=wallet.upper()
 		self.walletUpdated=True
-		# TODO raise signal to save old wallet info to file
-		# TODO reset tableData if new wallet
 
-		#start background thread.....
-		self.startLookingforTxn(wallet)
+		# TODO stop looking on old thread
+		self.set_wallet(wallet)				#set wallet on screen
+		self.set_balance(wallet)            #set balance on screen
+		self.readWalletStore()
+
+		self.startLookingforTxn()
 
 	@pyqtSlot(str)
 	def sayFile(self, str):
@@ -116,15 +201,6 @@ class ControlMainWindow(QtGui.QMainWindow):
 
 	def handleBtnWSend(self):
 		self.ui.stackedWidget.setCurrentIndex(1)
-		'''
-		msg = QtGui.QMessageBox()
-		msg.setIcon(QtGui.QMessageBox.Information)
-
-		msg.setText("This is a send message box")
-		msg.setInformativeText("This is additional information")
-		msg.setStandardButtons(QtGui.QMessageBox.Ok)
-		msg.exec_()
-		'''
 
 	def handleBtnWHome(self):
 		self.ui.stackedWidget.setCurrentIndex(0)
@@ -155,6 +231,13 @@ class ControlMainWindow(QtGui.QMainWindow):
         # enable sorting
 		self.ui.tableView_txn.setSortingEnabled(False)
 		self.ui.tableView_txn.model().layoutChanged.emit()
+
+	def dumpCurrWalletJson(self):
+		pathtoFile=buildFullPath(self.myWalletUC)
+		self.myWalletData['blockHeight'] = getCurrBlockNo()
+		with open(pathtoFile, 'w') as outfile:
+			json.dump(self.myWalletData, outfile, indent=4)
+
 
 	def txnTest(self):
 		#tableData=[[1,322222222222,4444444444444444,5444444444444,6444444444444444444],
@@ -189,11 +272,13 @@ class ControlMainWindow(QtGui.QMainWindow):
 
 		self.ui.tableView_txn.model().layoutChanged.emit()
 
-
+#def myExitHandler():
+	#pass
 
 if __name__ == '__main__':
 	app = QtGui.QApplication(sys.argv)
 
+	#app.aboutToQuit.connect(myExitHandler) # myExitHandler is a callable
 	#check geth connection
 	if not checkGethRunning():
 		print("Please start geth....with --rpcport 8545 --rpcapi personal,eth,web3,admin,net,db --rpccorsdomain *")

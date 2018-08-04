@@ -158,7 +158,8 @@ class ControlMainWindow(QtGui.QMainWindow):
 		#switching wallet dump the old one to disk
 		if self.walletUpdated == True:
 			self.dumpCurrWalletJson()
-			# TODO reset tableData if new wallet\
+			#stop current thread
+			self.thread.stop()
 			self.myWalletData={}
 			#reset display data data aswell
 			del self.tableData[:]

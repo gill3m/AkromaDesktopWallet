@@ -30,7 +30,7 @@ class Worker(QtCore.QThread):
 
     def run(self):
         counter=0
-
+        print('%-25s: %s, %s,' % ("Worker thread", QtCore.QThread.currentThread(), int(QtCore.QThread.currentThreadId())))
         print ("Finding Txn for: " + self.wallet)
         searchWalletUC=self.wallet.upper()
 

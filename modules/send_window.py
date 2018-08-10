@@ -116,12 +116,16 @@ class SendWindow(QtGui.QWidget):
 		self.myUTCFile=str
 
 	@pyqtSlot(str)
-	def sendWindowStoreWallet(self, str):
-		print("SendWin incoming wallet:" + str)
+	def sendWindowStoreWallet(self, inWallet):
+		print("SendWin incoming wallet:" + inWallet)
 		# run thru checksum to fix lowercase addr otheriwse GetBalance error
-		wallet = toChecksumAddr(str)
+		wallet = toChecksumAddr(inWallet)
 		self.myWallet=wallet
 		self.WalletInit=True
+
+		#set the Balance
+		balance = getBal(wallet)
+		self.ui.lineEdit_Balance.setText(str(balance))
 
 
 

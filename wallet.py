@@ -28,13 +28,15 @@ class ControlMainWindow(QtGui.QMainWindow):
 		self.ui.stackedWidget.addWidget(settings)
 
 		#Setup slots connections here
+		#User chosen a new wallet
 		settings.walletSignal.connect(self.sayWallet)
 		settings.walletSignal.connect(send.sendWindowStoreWallet)
+
+		#UTC file associated with this wallet, this is chosen by User
+		# in the Settings window.
 		settings.fileSignal.connect(self.sayFile)
 		settings.fileSignal.connect(send.sendWindowStoreFile)
 		settings.passSignal.connect(send.sendWindowStorePass)
-
-
 
 		self.connect(self.ui.btn_Home, SIGNAL("clicked()"), self.handleBtnWHome)
 		self.connect(self.ui.btn_Send, SIGNAL("clicked()"), self.handleBtnWSend)
@@ -50,6 +52,22 @@ class ControlMainWindow(QtGui.QMainWindow):
 		#self.txnTest()
 		self.setTableDefaults()
 		#lets wait for user to select wallet
+
+		#setup setIcons
+		self.setBtnIcons()
+
+
+	def setBtnIcons(self):
+		#TODO use resource file
+		homeIcon=QtGui.QIcon("assets/icons/home1.svg")
+		self.ui.btn_Home.setIcon(homeIcon)
+
+		sendIcon=QtGui.QIcon("assets/icons/arrowx2.png")
+		self.ui.btn_Send.setIcon(sendIcon)
+
+		settingsIcon=QtGui.QIcon("assets/icons/settings.png")
+		self.ui.btn_Settings.setIcon(settingsIcon)
+
 
 	def closeEvent(self, e):
 	# Write window size and position to config file

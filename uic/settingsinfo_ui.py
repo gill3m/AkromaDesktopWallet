@@ -25,7 +25,7 @@ except AttributeError:
 class Ui_SettingsInfo(object):
     def setupUi(self, SettingsInfo):
         SettingsInfo.setObjectName(_fromUtf8("SettingsInfo"))
-        SettingsInfo.resize(600, 200)
+        SettingsInfo.resize(600, 300)
         palette = QtGui.QPalette()
         brush = QtGui.QBrush(QtGui.QColor(0, 0, 0))
         brush.setStyle(QtCore.Qt.SolidPattern)
@@ -179,6 +179,12 @@ class Ui_SettingsInfo(object):
         self.btn_CreateWallet.setPalette(palette)
         self.btn_CreateWallet.setObjectName(_fromUtf8("btn_CreateWallet"))
         self.horizontalLayout.addWidget(self.btn_CreateWallet)
+        self.btn_Rescan = QtGui.QPushButton(SettingsInfo)
+        self.btn_Rescan.setObjectName(_fromUtf8("btn_Rescan"))
+        self.horizontalLayout.addWidget(self.btn_Rescan)
+        self.btn_PrivateKey = QtGui.QPushButton(SettingsInfo)
+        self.btn_PrivateKey.setObjectName(_fromUtf8("btn_PrivateKey"))
+        self.horizontalLayout.addWidget(self.btn_PrivateKey)
         self.gridLayout.addLayout(self.horizontalLayout, 0, 0, 1, 1)
         spacerItem1 = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
         self.gridLayout.addItem(spacerItem1, 1, 0, 1, 1)
@@ -189,5 +195,8 @@ class Ui_SettingsInfo(object):
     def retranslateUi(self, SettingsInfo):
         SettingsInfo.setWindowTitle(_translate("SettingsInfo", "Form", None))
         self.btn_OPenWallet.setText(_translate("SettingsInfo", "Open Wallet", None))
+        self.btn_CreateWallet.setToolTip(_translate("SettingsInfo", "<html><head/><body><p>This is your UTC file (usually in keystore directory)</p></body></html>", None))
         self.btn_CreateWallet.setText(_translate("SettingsInfo", "Create Wallet", None))
+        self.btn_Rescan.setText(_translate("SettingsInfo", "Rescan", None))
+        self.btn_PrivateKey.setText(_translate("SettingsInfo", "Show Private Key", None))
 

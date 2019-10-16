@@ -9,9 +9,9 @@ currently only tested on Ubuntu 18.04
 
 2. Get project
 
-  - cd
+    - cd
   
-  - git clone https://github.com/gill3m/AkromaDesktopWallet
+    - git clone https://github.com/gill3m/AkromaDesktopWallet
   
 3. Setup virualenv to work in (Strongly reccomended)
   

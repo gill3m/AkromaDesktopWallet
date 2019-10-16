@@ -1,41 +1,40 @@
 # AkromaDesktopWallet
 Akroma Desktop Wallet using Python3/PyQt4/Web3
-currently only tested on Ubuntu 16.04
+currently only tested on Ubuntu 18.04
 
 ## Installation for Ubuntu
 
-- Install Python 3.5
+1. Install PyQt4 
+    - sudo apt-get install python3-pyqt4
 
-- Install PyQt4
+2. Get project
 
-- Get project
-
-  cd
+    - cd
   
-  git clone https://github.com/gill3m/AkromaDesktopWallet
+    - git clone https://github.com/gill3m/AkromaDesktopWallet
   
-- Setup virualenv to work in (Strongly reccomended)
+3. Setup virualenv to work in (Strongly reccomended)
   
-  cd AkromaDesktopWallet
+    - cd AkromaDesktopWallet
   
-  python3 -m venv env
+    - python3 -m venv env
   (this will make a directory called env)
   
-  source env/bin/activate
+    - source env/bin/activate
   
-  pip install wheel
+    - pip install wheel
   
-  pip install web3
+    - pip install web3
   
-  To run the Wallet
+    - To run the Wallet
   
-  python3 wallet.py
+      - python3 wallet.py
   
   
   ### TODO
   
-  Multiple wallets
+    Multiple wallets
   
-  Address Book
+    Address Book
   
 

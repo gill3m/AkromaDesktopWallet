@@ -300,7 +300,7 @@ if __name__ == '__main__':
 	#app.aboutToQuit.connect(myExitHandler) # myExitHandler is a callable
 	#check geth connection
 	if not checkGethRunning():
-		print("Please start geth....with --rpcport 8545 --rpcapi personal,eth,web3,admin,net,db --rpccorsdomain *")
+		print('Please start geth....with --rpc  --rpcaddr 127.0.0.1 --rpcport 8545 --rpcapi web3,admin,personal,db,eth,net --rpccorsdomain "*"')
 		exit(1)
 
 	akromaMain = ControlMainWindow()
